@@ -31,7 +31,6 @@ export default function ExpenseModal({ isOpen, onClose, activeShiftId }: Expense
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Sesi kasir tidak valid");
 
-      // Insert ke tabel expenses beserta shift_id
       const { error } = await supabase.from('expenses').insert({
         category,
         amount: numAmount,
@@ -44,7 +43,6 @@ export default function ExpenseModal({ isOpen, onClose, activeShiftId }: Expense
 
       alert("Pengeluaran berhasil dicatat!");
       
-      // Reset form
       setAmount("");
       setDescription("");
       onClose();

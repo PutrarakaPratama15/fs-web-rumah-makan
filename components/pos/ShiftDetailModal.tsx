@@ -15,7 +15,6 @@ export default function ShiftDetailModal({ isOpen, onClose, shiftId, cashierName
   const [qrisItems, setQrisItems] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   
-  // State baru untuk menampung data ringkasan shift
   const [shiftSummary, setShiftSummary] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -25,7 +24,6 @@ export default function ShiftDetailModal({ isOpen, onClose, shiftId, cashierName
     const fetchShiftDetails = async () => {
       setIsLoading(true);
       try {
-        // 1. Tarik Data Utama Shift (Untuk Modal Awal & Setoran Fisik)
         const { data: shiftData, error: shiftError } = await supabase
           .from("shifts")
           .select("starting_cash, ending_cash, system_cash, status")
@@ -34,7 +32,6 @@ export default function ShiftDetailModal({ isOpen, onClose, shiftId, cashierName
         if (shiftError) throw shiftError;
         setShiftSummary(shiftData);
 
-        // 2. Tarik Data Penjualan (Join)
         const { data: itemsData, error: itemsError } = await supabase
           .from("transaction_items")
           .select(`
@@ -69,7 +66,6 @@ export default function ShiftDetailModal({ isOpen, onClose, shiftId, cashierName
         setCashItems(formatItems("CASH"));
         setQrisItems(formatItems("QRIS"));
 
-        // 3. Tarik Data Pengeluaran
         const { data: expensesData, error: expensesError } = await supabase
           .from("expenses")
           .select("category, amount, description, created_at")
@@ -90,7 +86,6 @@ export default function ShiftDetailModal({ isOpen, onClose, shiftId, cashierName
 
   if (!isOpen) return null;
 
-  // Hitung total nilai per kategori
   const totalCash = cashItems.reduce((sum, item) => sum + item.subtotal, 0);
   const totalQris = qrisItems.reduce((sum, item) => sum + item.subtotal, 0);
   const totalExpense = expenses.reduce((sum, exp) => sum + exp.amount, 0);

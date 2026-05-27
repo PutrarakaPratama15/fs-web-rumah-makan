@@ -27,17 +27,15 @@ export default function CloseShiftModal({ isOpen, onClose, activeShift }: CloseS
     setIsSubmitting(true);
 
     try {
-      // 1. Tarik total PEMASUKAN TUNAI (CASH) pada shift ini
       const { data: incomeData, error: incomeError } = await supabase
         .from('transactions')
         .select('total_amount')
         .eq('shift_id', activeShift.id)
-        .eq('payment_method', 'CASH'); // Hanya hitung tunai, QRIS tidak masuk laci
+        .eq('payment_method', 'CASH'); 
 
       if (incomeError) throw incomeError;
       const totalCashIncome = incomeData.reduce((sum, trx) => sum + trx.total_amount, 0);
 
-      // 2. Tarik total PENGELUARAN pada shift ini
       const { data: expenseData, error: expenseError } = await supabase
         .from('expenses')
         .select('amount')
@@ -46,16 +44,13 @@ export default function CloseShiftModal({ isOpen, onClose, activeShift }: CloseS
       if (expenseError) throw expenseError;
       const totalExpense = expenseData.reduce((sum, exp) => sum + exp.amount, 0);
 
-      // 3. Kalkulasi Uang Menurut Sistem
-      // Rumus: Modal Awal + Pemasukan Tunai - Pengeluaran
       const systemCash = activeShift.starting_cash + totalCashIncome - totalExpense;
 
-      // 4. Update tabel shifts (Tutup shift)
       const { error: updateError } = await supabase
         .from('shifts')
         .update({
-          ending_cash: Number(endingCash), // Uang riil yang dihitung kasir
-          system_cash: systemCash,         // Uang seharusnya menurut komputer
+          ending_cash: Number(endingCash), 
+          system_cash: systemCash,         
           end_time: new Date().toISOString(),
           status: 'closed'
         })
@@ -63,7 +58,6 @@ export default function CloseShiftModal({ isOpen, onClose, activeShift }: CloseS
 
       if (updateError) throw updateError;
 
-      // 5. Sukses! Logout user
       alert("Shift berhasil ditutup. Sistem akan mengeluarkan Anda.");
       await supabase.auth.signOut();
       router.replace("/login");

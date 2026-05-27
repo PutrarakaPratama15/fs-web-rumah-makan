@@ -1,8 +1,7 @@
-"use client"; // Wajib untuk interaksi klik
+"use client"; 
 
 import { useCartStore } from "@/store/useCartStore";
 
-// Mendefinisikan tipe data props (data menu) yang akan diterima tombol ini
 interface ProductProps {
   id: string;
   product_name: string;
@@ -10,7 +9,6 @@ interface ProductProps {
 }
 
 export default function ProductButton({ id, product_name, price }: ProductProps) {
-  // Panggil fungsi penambah item dari Zustand
   const addItem = useCartStore((state) => state.addItem);
 
   const handleAdd = () => {

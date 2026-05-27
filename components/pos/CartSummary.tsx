@@ -13,7 +13,6 @@ export default function CartSummary({ activeShiftId }: CartSummaryProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("QRIS");
 
-  // Fungsi INI yang harus ada kata "async" di depannya
   const handleCheckout = async () => {
     if (items.length === 0) return alert("Keranjang kosong!");
     setIsProcessing(true);
@@ -29,7 +28,6 @@ export default function CartSummary({ activeShiftId }: CartSummaryProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Sesi kasir tidak valid");
 
-      // Perintah await ini aman karena ada di dalam fungsi async
       const { error } = await supabase.rpc('checkout_pos', {
         p_total_amount: totalAmount,
         p_payment_method: paymentMethod,

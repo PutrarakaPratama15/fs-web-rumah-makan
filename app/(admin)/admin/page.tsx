@@ -18,11 +18,9 @@ const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   useEffect(() => {
     const checkAdminAndFetchData = async () => {
-      // 1. Cek Autentikasi
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return router.replace("/login");
 
-      // 2. Cek Otorisasi Role Admin
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
@@ -35,7 +33,6 @@ const [isDetailOpen, setIsDetailOpen] = useState(false);
       }
       setIsAuthorized(true);
 
-      // 3. Tarik Data Shift Hari Ini (Gunakan Timezone Jakarta)
       const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
 
       try {
@@ -59,9 +56,6 @@ const [isDetailOpen, setIsDetailOpen] = useState(false);
     return <div className="flex h-screen items-center justify-center font-bold">Memuat Ruang Kontrol...</div>;
   }
 
-  // =====================================================================
-  // LOGIKA KALKULASI RINGKASAN HARI INI (DI SINI TEMPAT YANG BENAR)
-  // =====================================================================
   const closedShifts = shiftsToday.filter(shift => shift.status === 'closed');
   
   // Total Laba Bersih Sistem (Pendapatan - Pengeluaran, tanpa modal awal)

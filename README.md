@@ -35,7 +35,7 @@ Sebuah sistem *Point of Sales* (POS) *Full-Stack* yang dirancang khusus untuk op
 
 Ikuti langkah-langkah di bawah ini untuk menjalankan aplikasi ini di komputer lokal.
 
-1. clone repositori ''bash
+1. clone repositori '''bash
 git clone [https://github.com/USERNAME_LU/fs-web-rumah-makan.git](https://github.com/USERNAME_LU/fs-web-rumah-makan.git)
 cd fs-web-rumah-makan
 

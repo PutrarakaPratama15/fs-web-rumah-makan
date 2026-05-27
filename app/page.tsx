@@ -219,7 +219,7 @@ export default function POSPage() {
             onClick={() => setIsExpenseModalOpen(true)}
             className="px-5 py-2 bg-yellow-100 text-yellow-700 font-bold rounded shadow-sm hover:bg-yellow-200 transition"
           >
-            KAS KECIL
+            PENGELUARAN
           </button>
           <button 
             onClick={() => setIsCloseShiftModalOpen(true)}

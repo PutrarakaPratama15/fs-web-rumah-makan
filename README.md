@@ -35,18 +35,19 @@ Sebuah sistem *Point of Sales* (POS) *Full-Stack* yang dirancang khusus untuk op
 
 Ikuti langkah-langkah di bawah ini untuk menjalankan aplikasi ini di komputer lokal.
 
-1. clone repositori '''bash
+1. clone repositori
+'''bash
 git clone [https://github.com/USERNAME_LU/fs-web-rumah-makan.git](https://github.com/USERNAME_LU/fs-web-rumah-makan.git)
 cd fs-web-rumah-makan
 
-2. install dependensi
+3. install dependensi
 npm install
 
-3. Pengaturan Environment Variables
+4. Pengaturan Environment Variables
 NEXT_PUBLIC_SUPABASE_URL=https://[ID_PROJECT_ANDA].supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[ANON_KEY_ANDA]
 
-4. persiapan database
+5. persiapan database
 Sistem ini membutuhkan skema database relasional. Anda wajib membuat tabel-tabel berikut di Supabase SQL Editor:
 -user_roles (Tabel otorisasi dengan constraint admin atau cashier)
 -products (Tabel menu dengan kebijakan RLS)
@@ -54,5 +55,5 @@ Sistem ini membutuhkan skema database relasional. Anda wajib membuat tabel-tabel
 -transactions & transaction_items (Tabel relasional penjualan)
 -expenses (Tabel kas kecil)
 
-5. jalankan aplikasi
+6. jalankan aplikasi
 npm run dev

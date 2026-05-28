@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import CloseShiftModal from "@/components/pos/CloseShiftModal";
@@ -22,6 +22,9 @@ export default function POSPage() {
 
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isCloseShiftModalOpen, setIsCloseShiftModalOpen] = useState(false);
+
+  const [qrisFile, setQrisFile] = useState<File | null>(null);
+  const hiddenCameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const initApp = async () => {
@@ -119,23 +122,63 @@ export default function POSPage() {
 
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-  const handleCheckout = async () => {
+// A. FUNGSI PELATUK AWAL (Ditekan saat klik tombol BAYAR)
+  const handlePayClick = () => {
     if (cart.length === 0) return alert("Keranjang kosong!");
+    
+    if (paymentMethod === 'QRIS') {
+      // Jika QRIS, tembak tombol kamera tersembunyi
+      hiddenCameraRef.current?.click(); 
+    } else {
+      // Jika CASH, langsung hajar eksekusi transaksi (tanpa foto)
+      executeTransaction(null);
+    }
+  };
+
+  // B. FUNGSI EKSEKUSI TRANSAKSI & UPLOAD (Otomatis jalan setelah kamera selesai)
+  const executeTransaction = async (capturedFile: File | null) => {
     setIsCheckout(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Sesi kasir tidak valid! Silakan login ulang.");
+
+      let proofUrl = null;
+
+      // PROSES UPLOAD FOTO QRIS
+      if (paymentMethod === 'QRIS' && capturedFile) {
+        const fileExt = capturedFile.name.split('.').pop();
+        const fileName = `qris-${activeShift.id.substring(0, 5)}-${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('qris_proofs')
+          .upload(fileName, capturedFile);
+
+        if (uploadError) throw new Error("Gagal upload bukti: " + uploadError.message);
+
+        const { data: publicUrlData } = supabase.storage
+          .from('qris_proofs')
+          .getPublicUrl(fileName);
+          
+        proofUrl = publicUrlData.publicUrl;
+      }
+
+      // INSERT TABEL TRANSAKSI INDUK
       const { data: trxData, error: trxError } = await supabase
         .from('transactions')
         .insert({
           shift_id: activeShift.id,
+          user_id: session.user.id,
           total_amount: cartTotal,
-          payment_method: paymentMethod 
+          payment_method: paymentMethod,
+          payment_proof_url: proofUrl
         })
         .select()
         .single();
 
       if (trxError) throw trxError;
 
+      // INSERT TABEL RINCIAN ITEM
       const itemsToInsert = cart.map(item => ({
         transaction_id: trxData.id,
         product_name: item.product_name,
@@ -151,7 +194,8 @@ export default function POSPage() {
       if (itemsError) throw itemsError;
 
       alert(`Pembayaran ${paymentMethod} Berhasil!`);
-      setCart([]);
+      setCart([]); 
+      setQrisFile(null);
     } catch (error: any) {
       alert("Gagal memproses pembayaran: " + error.message);
     } finally {
@@ -339,13 +383,37 @@ export default function POSPage() {
                 📱 QRIS
               </button>
             </div>
+            {/* INPUT KAMERA TERSEMBUNYI (Peluru Rahasia) */}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              ref={hiddenCameraRef}
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  // Begitu foto dijepret dan di-OK, langsung otomatis bayar!
+                  executeTransaction(file); 
+                }
+              }}
+            />
 
+            {/* TOMBOL BAYAR UTAMA */}
             <button
-              onClick={handleCheckout}
+              onClick={handlePayClick}
               disabled={isCheckout || cart.length === 0}
-              className="w-full bg-blue-600 text-white font-black text-lg py-4 rounded-xl shadow-lg hover:bg-blue-700 disabled:bg-gray-300 transition active:scale-95"
+              className={`w-full text-white font-black text-lg py-4 rounded-xl shadow-lg transition active:scale-95 ${
+                paymentMethod === 'QRIS' 
+                  ? 'bg-blue-600 hover:bg-blue-700' 
+                  : 'bg-green-600 hover:bg-green-700'
+              } disabled:bg-gray-300 disabled:cursor-not-allowed`}
             >
-              {isCheckout ? "MEMPROSES..." : `BAYAR SEKARANG`}
+              {isCheckout 
+                ? "MEMPROSES..." 
+                : paymentMethod === 'QRIS' 
+                  ? "📸 SCAN QRIS & BAYAR" 
+                  : "BAYAR SEKARANG"}
             </button>
           </div>
         </div>
